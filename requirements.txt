@@ -1,0 +1,19 @@
+python>=3.9
+
+# Core data handling
+pandas>=1.5
+numpy>=1.23
+
+# Data sources
+yfinance>=0.2
+
+# Visualization
+matplotlib>=3.7
+seaborn>=0.12
+
+# Machine learning
+scikit-learn>=1.2
+pycaret>=3.0
+
+# Scientific computing
+scipy>=1.10
