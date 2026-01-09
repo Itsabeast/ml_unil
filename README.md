@@ -3,7 +3,7 @@
 This repository contains the code used in the study *Gold Return and Directional Predictability with Machine Learning*.  
 The project investigates whether **gold futures returns and price direction** can be forecast over short- to medium-term horizons using machine learning models and a broad set of financial, macroeconomic, and geopolitical predictors.
 
-The primary goal is to assess whether modern machine learning methods can uncover economically meaningful predictive signals in gold prices when evaluated under a **strict, fully out-of-sample framework**.
+All models are evaluated under a **strict yearly walk-forward (fully out-of-sample) framework**, ensuring realistic forecasting conditions and preventing information leakage.
 
 ---
 
@@ -18,10 +18,10 @@ This framework closely mimics real-time forecasting conditions by ensuring that:
 
 ### Key Findings
 
-- Gold return predictability is generally limited and highly **state-dependent**
+- Gold return predictability is limited and highly **state-dependent**
 - Directional predictability emerges primarily at the **28-day horizon**
 - Predictability is stronger during periods of **market instability and frequent regime switching**
-- **Ensemble methods** and **regime-aware modeling** provide economically meaningful improvements relative to individual models
+- **Ensemble methods** and **regime-aware modeling** provide economically meaningful improvements
 
 ---
 
@@ -34,7 +34,7 @@ The following classes of models are implemented and compared:
 - **Linear models**
   - Ridge Regression  
 
-- **Tree-based ensemble models**
+- **Tree-based ensembles**
   - Random Forest  
   - Extremely Randomized Trees (Extra Trees)  
 
@@ -69,7 +69,7 @@ Two prediction tasks are considered at each forecast horizon:
 - **Sample period:** January 2010 – October 2025
 
 > Note: Yahoo Finance data may be revised over time.  
-> For exact replication, results should be generated using the datasets provided in the `data/` directory.
+> For exact replication, results should be generated using the datasets saved in the `data/` directory.
 
 ---
 
@@ -81,7 +81,87 @@ Two prediction tasks are considered at each forecast horizon:
 - Ensemble forecasts are constructed using:
   - **Averaging** for regression models
   - **Majority voting** for classification models
-- Results and figures are automatically exported for further analysis
+- Numerical results and figures are automatically exported for further analysis
+
+---
+
+## Execution Order
+
+The project is implemented as a **single, self-contained Jupyter notebook**.  
+All code must be executed **sequentially from top to bottom** to reproduce the results.
+
+### Step 1 — Environment Setup
+- Import required Python libraries
+- Set global configuration options and random seeds
+
+---
+
+### Step 2 — Data Acquisition and Preprocessing
+- Download gold futures (GC=F) and related financial series from Yahoo Finance
+- Load the Geopolitical Risk (GPR) Index
+- Align time series and handle missing values
+- Save the final merged dataset to the `data/` directory
+
+---
+
+### Step 3 — Feature Construction and Target Definition
+- Construct lagged financial, macroeconomic, and technical predictors
+- Standardize and transform features where appropriate
+- Construct return targets for 7-, 14-, 21-, and 28-day horizons
+- Create binary directional labels
+- Perform exploratory analysis (target–feature and feature–feature relationships)
+
+---
+
+### Step 4 — Regression Analysis
+
+#### 4.1 Walk-Forward Evaluation
+- Define yearly walk-forward splits
+- Specify rolling four-year training windows
+- Ensure all preprocessing is performed using training data only
+- Train regression models using the PyCaret framework
+- Perform time-series-aware three-fold cross-validation within each training window
+- Generate out-of-sample return forecasts
+- Save evaluation tables to the `result/` directory
+- Generate figures of model–target \( R^2 \) over the full test period
+
+#### 4.2 Ensemble Construction
+- Combine individual model forecasts using averaging
+- Evaluate all model combinations consisting of at least two models
+- Identify ensemble combinations with improved predictive performance
+
+#### 4.3 Regime-Based Analysis
+- Compute yearly out-of-sample \( R^2 \) for each model and forecast horizon
+- Identify periods of elevated predictability (e.g., 2018, 2022)
+- Apply K-means clustering to classify daily market regimes
+- Compute normalized entropy as a measure of regime instability
+- Relate high regime-switching frequency to forecast performance
+- Determine the optimal entropy threshold using the F1 score
+
+---
+
+### Step 5 — Classification Analysis
+
+#### 5.1 Walk-Forward Evaluation
+- Define yearly walk-forward splits
+- Specify rolling four-year training windows
+- Ensure all preprocessing is performed using training data only
+- Train classification models using the PyCaret framework
+- Perform time-series-aware three-fold cross-validation
+- Generate out-of-sample directional forecasts
+- Evaluate Accuracy and Balanced Accuracy
+- Compare model performance against naïve benchmarks
+- Save evaluation tables to the `result/` directory
+
+#### 5.2 Ensemble Construction
+- Combine individual classification models using majority voting
+- Evaluate all ensemble combinations with at least two models
+- Observe performance improvements, particularly for the 28-day horizon
+
+---
+
+> **Important:**  
+> Cells must be run in order. Skipping or reordering cells may result in errors or inconsistent results.
 
 ---
 
@@ -90,7 +170,7 @@ Two prediction tasks are considered at each forecast horizon:
 ```text
 ├── gold_prediction_code.ipynb   # Main notebook (full pipeline)
 ├── data/                        # Input datasets
-├── result/                      # Exported ML traning results
+├── result/                      # Exported tables and evaluation metrics
 ├── plot/                        # Exported figures
 ├── requirements.txt             # Python dependencies
 └── README.md
